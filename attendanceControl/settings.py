@@ -42,8 +42,14 @@ INSTALLED_APPS = [
     'app',
     'admin_panel',
     'alumnos',
+    'asistencia',
+    'carrera',
+    'clase',
+    'grupo',
     'users',
-    'maestros'
+    'maestros',
+    'materia',
+    'rol',
 ]
 
 MIDDLEWARE = [
