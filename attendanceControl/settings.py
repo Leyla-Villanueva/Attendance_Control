@@ -23,10 +23,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-ks&%acx)dwccepf+xr#lx366a-k92(24yqf47c=u82n^n=-r7z'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
-    '127.0.0.1', 'localhost'
+    '*'
 ]
 
 
@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'maestros',
     'materia',
     'rol',
+    'unidad',
 ]
 
 MIDDLEWARE = [
