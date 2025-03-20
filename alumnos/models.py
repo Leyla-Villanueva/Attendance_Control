@@ -5,7 +5,7 @@ from grupo.models import Grupo
 from users.models import User
 
 class Alumno(models.Model):
-    id_alumno = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    id = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     grupo = models.ForeignKey(Grupo, null=True, blank=True, on_delete=models.SET_NULL)
     grado = models.CharField(max_length=2)
     carrera_id = models.ForeignKey(Carrera, null=True, blank=True, on_delete=models.SET_NULL)
