@@ -1,10 +1,10 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import GrupoViewSet
+from django.urls import path,include
+from rest_framework.routers import SimpleRouter
+from .views import *
 
-router = DefaultRouter()
-router.register(r'grupo', GrupoViewSet, basename='grupo')
+router = SimpleRouter()
+router.register(r'api', GrupoViewSet)
 
 urlpatterns = [
-    path('api/', include(router.urls)),
+    path('', include(router.urls)),
 ]
