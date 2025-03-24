@@ -1,10 +1,10 @@
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from rest_framework.routers import SimpleRouter
 from .views import MateriaViewSet
 
-router = DefaultRouter()
-router.register(r'materias', MateriaViewSet, basename='materia')
+router = SimpleRouter()
+router.register("api", MateriaViewSet)
 
 urlpatterns = [
-    path('api/', include(router.urls)),
+    path("", include(router.urls)),
 ]
