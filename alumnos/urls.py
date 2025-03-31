@@ -4,9 +4,9 @@ from .views import AlumnoViewSet, ver_asistencia
 
 # Usamos DefaultRouter para registrar las rutas
 router = DefaultRouter()
-router.register(r"alumnos", AlumnoViewSet, basename="alumno")
+router.register(r"api", AlumnoViewSet, basename="alumno")
 
 urlpatterns = [
-    path("ver/", ver_asistencia, name="ver"),  # Incluimos la ruta para ver asistencia
-    path("api/", include(router.urls)),  # Incluimos las rutas del router
+    path("", ver_asistencia, name="ver"),  # Incluimos la ruta para ver asistencia
+    path("", include(router.urls)),  # Incluimos las rutas del router
 ]
