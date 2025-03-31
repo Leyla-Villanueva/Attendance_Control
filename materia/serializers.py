@@ -28,8 +28,6 @@ class MateriaSerializer(serializers.ModelSerializer):
             if unidad_id:
                 unidad = Unidad.objects.get(id=unidad_id, materia=instance)
                 unidad.nombre = unidad_data.get('nombre', unidad.nombre)
-                unidad.fecha_inicio = unidad_data.get('fecha_inicio', unidad.fecha_inicio)
-                unidad.fecha_fin = unidad_data.get('fecha_fin', unidad.fecha_fin)
                 unidad.save()
             else:
                 Unidad.objects.create(materia=instance, **unidad_data)

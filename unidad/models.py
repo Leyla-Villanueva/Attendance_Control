@@ -7,8 +7,7 @@ class Unidad(models.Model):
     materia = models.ForeignKey(
         "materia.Materia", on_delete=models.CASCADE, related_name="unidades"
     )
-    fecha_inicio = models.DateField(default=date.today)
-    fecha_fin = models.DateField(default=date.today)
+
 
     def __str__(self):
         return self.nombre
