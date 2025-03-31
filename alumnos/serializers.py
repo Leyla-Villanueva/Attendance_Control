@@ -1,5 +1,4 @@
 from rest_framework import serializers
-<<<<<<< HEAD
 from django.contrib.auth import get_user_model
 from .models import Alumno
 from rol.models import Rol
@@ -10,6 +9,9 @@ User = get_user_model()
 
 
 class AlumnoSerializer(serializers.ModelSerializer):
+    asistencia = serializers.CharField(required=False)  # Campo adicional para asistencia
+    color = serializers.CharField(required=False)  # Campo adicional para color
+
     class Meta:
         model = Alumno
         fields = "__all__"
@@ -44,16 +46,3 @@ class AlumnoSerializer(serializers.ModelSerializer):
             id=user, contrasenaTemporal=password, **validated_data
         )
         return alumno
-=======
-from .models import Alumno
-
-class AlumnoSerializer(serializers.ModelSerializer):
-    asistencia = serializers.CharField()  # Por ejemplo, podrías hacerlo estático o de alguna otra manera
-    color = serializers.CharField()  # Usamos un color aleatorio o de alguna lógica específica
-
-    class Meta:
-        model = Alumno
-        fields = '__all__'
-
-        
->>>>>>> Ana-Jatz
