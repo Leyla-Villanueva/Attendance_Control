@@ -51,7 +51,11 @@ INSTALLED_APPS = [
     "unidad",
     "rest_framework",
     "rest_framework_simplejwt",
+<<<<<<< HEAD
     'corsheaders',
+=======
+    "corsheaders",
+>>>>>>> Ana-Jatz
 ]
 
 REST_FRAMEWORK = {
@@ -71,9 +75,19 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
 ]
 
+<<<<<<< HEAD
 CORS_ALLOW_ALL_ORIGINS = True
+=======
+#permite peticiones de react
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+]
+
+>>>>>>> Ana-Jatz
 
 ROOT_URLCONF = "attendanceControl.urls"
 
