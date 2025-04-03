@@ -42,14 +42,22 @@ class GrupoSerializer(serializers.ModelSerializer):
         # Actualizar el grupo
         instance.nombre = validated_data.get("nombre", instance.nombre)
         instance.grado = validated_data.get("grado", instance.grado)
+
+        # Si se especifica una nueva carrera, actualizarla en el grupo
+        if carrera_data:
+            instance.carrera_id = carrera_data
+
         instance.save()
 
         # Asignar el grupo, grado y carrera a los alumnos especificados
         for alumno in alumnos_data:
             alumno.grupo = instance
             alumno.grado = instance.grado
-            if carrera_data:  # Si se especifica una carrera, actualizarla
-                alumno.carrera_id = carrera_data
+
+            # Si no se especifica una carrera explícita, usar la carrera del grupo
+            if not alumno.carrera_id:
+                alumno.carrera_id = instance.carrera_id
+
             alumno.save()
 
         return instance

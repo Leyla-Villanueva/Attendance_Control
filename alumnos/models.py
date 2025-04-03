@@ -8,7 +8,7 @@ class Alumno(models.Model):
     nombre = models.CharField(max_length=100)
     apellido_paterno = models.CharField(max_length=100)
     apellido_materno = models.CharField(max_length=100)
-    grupo = models.ForeignKey(Grupo, null=True, blank=True, on_delete=models.SET_NULL)
+    grupo = models.ForeignKey(Grupo, null=True, blank=True, on_delete=models.SET_NULL, related_name="alumnos")
     grado = models.CharField(max_length=2, blank=True, null=True)
     carrera_id = models.ForeignKey(Carrera, null=True, blank=True, on_delete=models.SET_NULL)
     contrasenaTemporal = models.CharField(max_length=255, blank=True, null=True)
