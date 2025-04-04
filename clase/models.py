@@ -12,4 +12,4 @@ class Clase(models.Model):
     dia_clase = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.materia.nombre} - {self.periodo}"
+        return f"{self.materia_id.nombre} - {self.periodo}"

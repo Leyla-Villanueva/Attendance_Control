@@ -20,3 +20,11 @@ class AlumnoViewSet(viewsets.ModelViewSet):
     
     # Permitir filtrar qué métodos HTTP se pueden usar
     http_method_names = ['get', 'post', 'put', 'delete']
+
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        clase_id = self.request.query_params.get('clase', None)
+        if clase_id is not None:
+            queryset = queryset.filter(grupo=clase_id)  # Cambia 'grupo' por el campo de relación que tengas
+        return queryset
