@@ -21,6 +21,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         # Agregar el nombre de usuario
         data["username"] = self.user.username
 
+        # Agregar el ID del usuario
+        data["id"] = self.user.id
+
         # Verificar si el usuario es un Alumno
         if hasattr(self.user, "alumno"):
             alumno = self.user.alumno

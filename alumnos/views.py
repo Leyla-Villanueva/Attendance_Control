@@ -3,6 +3,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework import viewsets
 from .models import Alumno
 from .serializers import AlumnoSerializer
+from clase.models import Clase
 
 # Vista para ver asistencia
 def ver_asistencia(request):
@@ -21,10 +22,22 @@ class AlumnoViewSet(viewsets.ModelViewSet):
     # Permitir filtrar qué métodos HTTP se pueden usar
     http_method_names = ['get', 'post', 'put', 'delete']
 
-
     def get_queryset(self):
+        queryset = super().get_queryset()
+        clase_id = self.request.query_params.get('clase', None)
+        
+        if clase_id is not None:
+            try:
+                clase = Clase.objects.get(id=clase_id)
+                queryset = queryset.filter(grupo=clase.grupo_id)
+            except Clase.DoesNotExist:
+                queryset = Alumno.objects.none()
+        
+        return queryset
+
+    """ def get_queryset(self):
         queryset = super().get_queryset()
         clase_id = self.request.query_params.get('clase', None)
         if clase_id is not None:
             queryset = queryset.filter(grupo=clase_id)  # Cambia 'grupo' por el campo de relación que tengas
-        return queryset
+        return queryset """
