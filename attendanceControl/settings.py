@@ -159,3 +159,11 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # Backend para enviar correos
+EMAIL_HOST = 'smtp.gmail.com'  # Servidor SMTP (en este caso, Gmail)
+EMAIL_PORT = 587  # Puerto para conexiones TLS
+EMAIL_USE_TLS = True  # Usar TLS para la conexión segura
+EMAIL_HOST_USER = 'alancindragon10@gmail.com'  # Tu dirección de correo electrónico
+EMAIL_HOST_PASSWORD = 'sqhm zqdr loib mmxo'  # Contraseña de tu correo electrónico
+DEFAULT_FROM_EMAIL = 'no-reply@attendancecontrol.com'  # Dirección de correo que aparece como remitente

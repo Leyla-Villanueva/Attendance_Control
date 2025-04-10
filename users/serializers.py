@@ -3,6 +3,10 @@ from .models import User
 from rest_framework import serializers
 from alumnos.models import Alumno
 from maestros.models import Maestro
+from django.contrib.auth.hashers import make_password
+
+import random
+import string
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
@@ -42,3 +46,49 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             data["apellido_materno"] = maestro.apellido_materno
 
         return data
+
+
+class PasswordRecoverySerializer(serializers.Serializer):
+    username = serializers.CharField()
+
+    def validate_username(self, value):
+        if not User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("El usuario no existe.")
+        return value
+
+
+class PasswordUpdateSerializer(serializers.Serializer):
+    username = serializers.CharField()
+
+    def validate_username(self, value):
+        if not User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("El usuario no existe.")
+        return value
+
+    def generate_password(self):
+        # Generar una contraseña aleatoria con letras, números y caracteres especiales
+        characters = string.ascii_letters + string.digits + string.punctuation
+        return "".join(random.choices(characters, k=8))
+
+    def update_password(self):
+        username = self.validated_data["username"]
+        new_password = self.generate_password()  # Generar la contraseña automáticamente
+
+        # Actualizar la contraseña del usuario
+        user = User.objects.get(username=username)
+        user.password = make_password(new_password)  # Encriptar la contraseña
+        user.save()
+
+        # Actualizar la contraseña temporal en la tabla Alumno (si aplica)
+        if hasattr(user, "alumno"):
+            alumno = user.alumno
+            alumno.contrasenaTemporal = new_password  # Guardar sin encriptar
+            alumno.save()
+
+        # Actualizar la contraseña temporal en la tabla Maestro (si aplica)
+        if hasattr(user, "maestro"):
+            maestro = user.maestro
+            maestro.contrasenaTemporal = new_password  # Guardar sin encriptar
+            maestro.save()
+
+        return new_password  # Retornar la nueva contraseña generada

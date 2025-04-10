@@ -4,12 +4,18 @@ from .models import Alumno
 from rol.models import Rol
 import random
 import string
+from users.serializers import CustomUserSerializer
 
 User = get_user_model()
 
 
 class AlumnoSerializer(serializers.ModelSerializer):
-    asistencia = serializers.CharField(required=False)  # Campo adicional para asistencia
+
+    usuario = CustomUserSerializer(source="id", read_only=True)
+
+    asistencia = serializers.CharField(
+        required=False
+    )  # Campo adicional para asistencia
     color = serializers.CharField(required=False)  # Campo adicional para color
 
     class Meta:
