@@ -14,6 +14,11 @@ from users.models import User
 from django.contrib.auth.hashers import make_password
 import secrets
 import string
+import openpyxl
+from openpyxl.utils import get_column_letter
+from django.http import HttpResponse
+from rest_framework.permissions import IsAuthenticated
+
 
 def ver_asistencia(request):
     return render(request, 'inicio.html')
@@ -103,3 +108,42 @@ class CargaMasivaAlumnosView(APIView):
         finally:
             if os.path.exists(tmp_file):
                 os.remove(tmp_file)
+                
+class ExportarAlumnosView(APIView):
+
+    def get(self, request):
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Alumnos Registrados"
+
+        headers = ['Apellido Paterno', 'Apellido Materno', 'Nombre', 'Contraseña Temporal']
+        ws.append(headers)
+
+        alumnos = Alumno.objects.all()
+
+        for alumno in alumnos:
+            ws.append([
+                alumno.apellido_paterno,
+                alumno.apellido_materno,
+                alumno.nombre,
+                alumno.contrasenaTemporal or ''
+            ])
+
+        for col in ws.columns:
+            max_length = 0
+            column = col[0].column  
+            for cell in col:
+                try:
+                    if cell.value:
+                        max_length = max(max_length, len(str(cell.value)))
+                except:
+                    pass
+            ws.column_dimensions[get_column_letter(column)].width = max_length + 2
+
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+        response['Content-Disposition'] = 'attachment; filename=alumnos.xlsx'
+
+        wb.save(response)
+        return response
