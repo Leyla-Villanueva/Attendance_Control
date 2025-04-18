@@ -4,22 +4,27 @@ from rest_framework import viewsets
 from .models import Alumno
 from .serializers import AlumnoSerializer
 from clase.models import Clase
+import pandas as pd
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.core.files.storage import default_storage
+import os
+from users.models import User
+from django.contrib.auth.hashers import make_password
+import secrets
+import string
 
-# Vista para ver asistencia
 def ver_asistencia(request):
     return render(request, 'inicio.html')
 
 class AlumnoViewSet(viewsets.ModelViewSet):
-    # Esta variable indica de dónde sacar el modelo y la información de la BD
     queryset = Alumno.objects.all()
     
-    # Cómo serializar la información
     serializer_class = AlumnoSerializer
     
-    # Cómo renderizar las respuestas
     renderer_classes = [JSONRenderer]
     
-    # Permitir filtrar qué métodos HTTP se pueden usar
     http_method_names = ['get', 'post', 'put', 'delete']
 
     def get_queryset(self):
@@ -35,9 +40,66 @@ class AlumnoViewSet(viewsets.ModelViewSet):
         
         return queryset
 
-    """ def get_queryset(self):
-        queryset = super().get_queryset()
-        clase_id = self.request.query_params.get('clase', None)
-        if clase_id is not None:
-            queryset = queryset.filter(grupo=clase_id)  # Cambia 'grupo' por el campo de relación que tengas
-        return queryset """
+
+def generar_contrasena_temporal(longitud=10):
+    caracteres = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(caracteres) for _ in range(longitud))
+class CargaMasivaAlumnosView(APIView):
+    def post(self, request):
+        file = request.FILES.get('file')
+
+        if not file:
+            return Response({"error": "No se recibió ningún archivo."}, status=status.HTTP_400_BAD_REQUEST)
+
+        print("Nombre del archivo:", file.name)
+        print("Contenido del archivo:")
+        for chunk in file.chunks():
+            print(chunk.decode(errors="ignore"))
+
+        path = default_storage.save(f'tmp/{file.name}', file)
+        tmp_file = os.path.join(default_storage.location, path)
+
+        try:
+            if file.name.endswith('.csv'):
+                df = pd.read_csv(tmp_file, encoding='utf-8-sig')
+            else:
+                df = pd.read_excel(tmp_file)
+
+            print("DataFrame cargado:")
+            print(df.head())
+
+            df.columns = df.columns.str.strip().str.lower()
+            df.dropna(subset=["nombre", "apellido_paterno", "apellido_materno"], inplace=True) 
+            contrasena_temporal = generar_contrasena_temporal()
+           
+            for _, row in df.iterrows():
+                try:
+                    username = f"{row['nombre']}.{row['apellido_paterno']}".lower()
+                    password = make_password(contrasena_temporal)
+                    user = User.objects.create(
+                        username=username,
+                        password=password,
+                        rol_id=3  
+                    )
+
+                    Alumno.objects.create(
+                        id=user,  
+                        nombre=row["nombre"],
+                        apellido_paterno=row["apellido_paterno"],
+                        apellido_materno=row["apellido_materno"],
+                        grupo_id=row.get("grupo_id"),  
+                        grado=row.get("grado"),
+                        carrera_id=row.get("carrera_id"),
+                        contrasenaTemporal=contrasena_temporal,
+                    )
+                except Exception as e:
+                    print(f"Error al procesar la fila {row}: {e}")
+                    continue
+
+            return Response({"message": "Alumnos cargados exitosamente."}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            print("Error durante el procesamiento:", str(e)) 
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        finally:
+            if os.path.exists(tmp_file):
+                os.remove(tmp_file)
