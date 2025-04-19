@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Asistencia
+from .models import Asistencia, Unidad
 from .serializers import AsistenciaSerializer
 
 class AsistenciaViewSet(viewsets.ModelViewSet):
@@ -16,33 +16,35 @@ class AsistenciaViewSet(viewsets.ModelViewSet):
         return queryset
 
     def create(self, request, *args, **kwargs):
-        asistencias = request.data.get("registros", [])  # <- Asegúrate que usas "registros" y no "asistencias"
+        asistencias = request.data.get("registros", [])
 
         for asistencia_data in asistencias:
             alumno = asistencia_data.get("alumno")
             fecha = asistencia_data.get("fecha")
-            clase = asistencia_data.get("clase") or asistencia_data.get("unidad")  # Dependiendo del nombre que uses
+            clase = asistencia_data.get("clase")
+            unidad_id = asistencia_data.get("unidad")
             estado = asistencia_data.get("estado")
 
             if not alumno or not fecha or not clase:
                 continue  # Ignora registros incompletos
 
-            # Buscar si ya existe una asistencia para ese alumno, clase y fecha
+            # Obtener la instancia de Unidad si se proporciona
+            unidad_instance = None
+            if unidad_id:
+                try:
+                    unidad_instance = Unidad.objects.get(id=unidad_id)
+                except Unidad.DoesNotExist:
+                    unidad_instance = None  # o podrías loguear un warning si lo prefieres
+
+            # Crear o actualizar la asistencia
             obj, creado = Asistencia.objects.update_or_create(
                 alumno_id=alumno,
                 clase_id=clase,
                 fecha=fecha,
-                defaults={"estado": estado},
+                defaults={
+                    "estado": estado,
+                    "unidad": unidad_instance,
+                },
             )
 
         return Response({"message": "Asistencias registradas o actualizadas correctamente"}, status=status.HTTP_201_CREATED)
-
-
-""" from django.shortcuts import render
-from rest_framework import viewsets
-from .models import Asistencia
-from .serializers import AsistenciaSerializer
-
-class AsistenciaViewSet(viewsets.ModelViewSet):
-    queryset = Asistencia.objects.all()
-    serializer_class = AsistenciaSerializer """

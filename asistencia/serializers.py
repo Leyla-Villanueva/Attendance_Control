@@ -11,4 +11,4 @@ class AsistenciaSerializer(serializers.ModelSerializer):
 #    estado = EstadoAsistenciaSerializer()
     class Meta:
         model = Asistencia
-        fields = ['id','alumno', 'clase', 'fecha', 'estado']
+        fields = ['id','alumno', 'clase', 'unidad', 'fecha', 'estado']
