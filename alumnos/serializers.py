@@ -30,24 +30,40 @@ class AlumnoSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        # Crear el usuario
-        first_name = validated_data["nombre"]
-        last_name = validated_data["apellido_paterno"]
-        username = f"{first_name}.{last_name}".lower()
+        # Validar el campo 'nombre'
+        first_name = (
+            validated_data["nombre"].split()[0]
+            if validated_data.get("nombre") and " " in validated_data["nombre"]
+            else validated_data.get("nombre", "")
+        )
+        if not first_name:
+            raise serializers.ValidationError("El campo 'nombre' es obligatorio.")
 
-        # Creación de contraseña con letras, números y caracteres especiales
+        last_name = validated_data["apellido_paterno"]
+
+        # Generar un username único
+        while True:
+            random_suffix = "".join(random.choices(string.ascii_letters + string.digits, k=3))
+            username = f"{first_name}.{last_name}".lower() + random_suffix
+            if not User.objects.filter(username=username).exists():
+                break
+
+        # Creación de contraseña
         characters = string.ascii_letters + string.digits + string.punctuation
         password = "".join(random.choices(characters, k=8))
 
         # Asignación del rol
-        rol_alumno = Rol.objects.get(rol="alumno")
+        try:
+            rol_alumno = Rol.objects.get(rol="alumno")
+        except Rol.DoesNotExist:
+            raise serializers.ValidationError("El rol 'alumno' no existe.")
 
         # Crear el usuario
         user = User.objects.create_user(
             username=username, password=password, rol=rol_alumno
         )
 
-        # Crear el alumno y guardar la contraseña sin encriptar en contrasenaTemporal
+        # Crear el alumno
         alumno = Alumno.objects.create(
             id=user, contrasenaTemporal=password, **validated_data
         )

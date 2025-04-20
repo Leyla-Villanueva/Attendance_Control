@@ -14,7 +14,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from .serializers import PasswordRecoverySerializer
-from .serializers import PasswordUpdateSerializer
+from .serializers import *
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -65,6 +65,7 @@ class PasswordUpdateView(APIView):
     def post(self, request):
         serializer = PasswordUpdateSerializer(data=request.data)
         if serializer.is_valid():
+            # Actualizar la contraseña y reactivar al usuario
             new_password = serializer.update_password()
             return Response(
                 {
@@ -73,4 +74,13 @@ class PasswordUpdateView(APIView):
                 },
                 status=status.HTTP_200_OK,
             )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class BlockUserView(APIView):
+    def post(self, request):
+        serializer = UserBlockSerializer(data=request.data)
+        if serializer.is_valid():
+            result = serializer.block_user()
+            return Response(result, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -77,7 +77,8 @@ class PasswordUpdateSerializer(serializers.Serializer):
         # Actualizar la contraseña del usuario
         user = User.objects.get(username=username)
         user.password = make_password(new_password)  # Encriptar la contraseña
-        user.save()
+        user.is_active = True  # Reactivar al usuario
+        user.save()  # Guardar los cambios en la base de datos
 
         # Actualizar la contraseña temporal en la tabla Alumno (si aplica)
         if hasattr(user, "alumno"):
@@ -92,3 +93,22 @@ class PasswordUpdateSerializer(serializers.Serializer):
             maestro.save()
 
         return new_password  # Retornar la nueva contraseña generada
+
+
+class UserBlockSerializer(serializers.Serializer):
+    username = serializers.CharField()
+
+    def validate_username(self, value):
+        if not User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("El usuario no existe.")
+        return value
+
+    def block_user(self):
+        username = self.validated_data["username"]
+
+        # Bloquear al usuario
+        user = User.objects.get(username=username)
+        user.is_active = False  # Desactivar al usuario
+        user.save()
+
+        return {"message": f"El usuario '{username}' ha sido bloqueado."}

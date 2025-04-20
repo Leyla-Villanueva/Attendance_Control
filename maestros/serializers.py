@@ -22,23 +22,42 @@ class MaestroSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        # Crear el usuario
-        first_name = validated_data["nombre"]
+        # Validar el campo 'nombre'
+        first_name = (
+            validated_data["nombre"].split()[0]
+            if validated_data.get("nombre") and " " in validated_data["nombre"]
+            else validated_data.get("nombre", "")
+        )
+        if not first_name:
+            raise serializers.ValidationError("El campo 'nombre' es obligatorio.")
+
         last_name = validated_data["apellido_paterno"]
-        username = f"{first_name}.{last_name}".lower()
-        # Creacion de contraseña con letras, numeros y caracteres especiales
+
+        # Generar un username único
+        while True:
+            random_suffix = "".join(
+                random.choices(string.ascii_letters + string.digits, k=3)
+            )
+            username = f"{first_name}.{last_name}".lower() + random_suffix
+            if not User.objects.filter(username=username).exists():
+                break
+
+        # Creación de contraseña con letras, números y caracteres especiales
         characters = string.ascii_letters + string.digits + string.punctuation
         password = "".join(random.choices(characters, k=8))
 
-        # Asignacion del rol
-        rol_maestro = Rol.objects.get(rol="maestro")
+        # Asignación del rol
+        try:
+            rol_maestro = Rol.objects.get(rol="maestro")
+        except Rol.DoesNotExist:
+            raise serializers.ValidationError("El rol 'maestro' no existe.")
 
-        # User
+        # Crear el usuario
         user = User.objects.create_user(
             username=username, password=password, rol=rol_maestro
         )
 
-        # Creacion del maestro pero con contraseña temporal (le vamos a preguntar a Derick como hacer esto xd)
+        # Crear el maestro
         maestro = Maestro.objects.create(
             id=user, contrasenaTemporal=password, **validated_data
         )
