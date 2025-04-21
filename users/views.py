@@ -15,6 +15,7 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from .serializers import PasswordRecoverySerializer
 from .serializers import *
+from rest_framework.permissions import AllowAny
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -35,6 +36,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
 
 class PasswordRecoveryView(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
         serializer = PasswordRecoverySerializer(data=request.data)
         if serializer.is_valid():
@@ -62,6 +64,7 @@ class PasswordRecoveryView(APIView):
 
 
 class PasswordUpdateView(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
         serializer = PasswordUpdateSerializer(data=request.data)
         if serializer.is_valid():
@@ -78,6 +81,7 @@ class PasswordUpdateView(APIView):
 
 
 class BlockUserView(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
         serializer = UserBlockSerializer(data=request.data)
         if serializer.is_valid():
