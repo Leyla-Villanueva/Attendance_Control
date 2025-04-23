@@ -79,6 +79,7 @@ class CargaMasivaAlumnosView(APIView):
            
             for _, row in df.iterrows():
                 try:
+                    contrasena_temporal = generar_contrasena_temporal()
                     username = f"{row['nombre']}.{row['apellido_paterno']}".lower()
                     password = make_password(contrasena_temporal)
                     user = User.objects.create(
@@ -92,16 +93,16 @@ class CargaMasivaAlumnosView(APIView):
                         nombre=row["nombre"],
                         apellido_paterno=row["apellido_paterno"],
                         apellido_materno=row["apellido_materno"],
-                        grupo_id=row.get("grupo_id"),  
-                        grado=row.get("grado"),
-                        carrera_id=row.get("carrera_id"),
                         contrasenaTemporal=contrasena_temporal,
+                        grupo=None,
+                        grado=None,
+                        carrera_id=None,
                     )
                 except Exception as e:
                     print(f"Error al procesar la fila {row}: {e}")
                     continue
 
-            return Response({"message": "Alumnos cargados exitosamente."}, status=status.HTTP_201_CREATED)
+            return Response({"message": "Alumnos cargados exitosamente."}, status=status.HTTP_200_OK)
         except Exception as e:
             print("Error durante el procesamiento:", str(e)) 
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -116,13 +117,14 @@ class ExportarAlumnosView(APIView):
         ws = wb.active
         ws.title = "Alumnos Registrados"
 
-        headers = ['Apellido Paterno', 'Apellido Materno', 'Nombre', 'Contraseña Temporal']
+        headers = ['Username', 'Apellido Paterno', 'Apellido Materno', 'Nombre', 'Contraseña Temporal']
         ws.append(headers)
 
         alumnos = Alumno.objects.all()
 
         for alumno in alumnos:
             ws.append([
+                alumno.id.username,
                 alumno.apellido_paterno,
                 alumno.apellido_materno,
                 alumno.nombre,
