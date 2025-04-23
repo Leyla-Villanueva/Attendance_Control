@@ -2,62 +2,67 @@ from rest_framework import serializers
 from .models import Grupo
 from alumnos.models import Alumno  # Importa el modelo Alumno
 from carrera.models import Carrera  # Importa el modelo Carrera
+from carrera.serializers import CarreraSerializer  # Importa el serializer de Carrera
 
 
 class GrupoSerializer(serializers.ModelSerializer):
     alumnos = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Alumno.objects.all(), required=False
-    )  # Campo para recibir los IDs de los alumnos
-    carrera = serializers.PrimaryKeyRelatedField(
-        queryset=Carrera.objects.all(), required=False
-    )  # Campo para recibir el ID de la carrera
+    )
+    carrera = CarreraSerializer(read_only=True)
+    carrera_id = serializers.PrimaryKeyRelatedField(
+        queryset=Carrera.objects.all(),
+        write_only=True,
+        source="carrera",
+        required=False,
+    )
 
     class Meta:
         model = Grupo
         fields = "__all__"
 
     def create(self, validated_data):
-        # Extraer los IDs de los alumnos y la carrera del JSON
+        # Extraer la lista de alumnos de los datos validados
         alumnos_data = validated_data.pop("alumnos", [])
-        carrera_data = validated_data.pop("carrera", None)
 
-        # Crear el grupo
+        # Crear el grupo con los datos restantes (incluyendo carrera)
         grupo = Grupo.objects.create(**validated_data)
 
-        # Asignar el grupo, grado y carrera a los alumnos especificados
+        # Actualizar cada alumno con el nuevo grupo y datos relacionados
         for alumno in alumnos_data:
             alumno.grupo = grupo
             alumno.grado = grupo.grado
-            if carrera_data:  # Si se especifica una carrera, actualizarla
-                alumno.carrera_id = carrera_data
+            alumno.carrera = grupo.carrera  # Asignar la misma carrera que el grupo
             alumno.save()
 
         return grupo
 
     def update(self, instance, validated_data):
-        # Extraer los IDs de los alumnos y la carrera del JSON
+        # Extraer alumnos
         alumnos_data = validated_data.pop("alumnos", [])
-        carrera_data = validated_data.pop("carrera", None)
 
-        # Actualizar el grupo
-        instance.nombre = validated_data.get("nombre", instance.nombre)
-        instance.grado = validated_data.get("grado", instance.grado)
-
-        # Si se especifica una nueva carrera, actualizarla en el grupo
-        if carrera_data:
-            instance.carrera_id = carrera_data
-
+        # Actualizar los campos del grupo utilizando los datos validados restantes
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
         instance.save()
 
-        # Asignar el grupo, grado y carrera a los alumnos especificados
+        # Manejar los alumnos actuales
+        current_alumnos = list(instance.alumnos.all())
+
+        # Eliminar alumnos que no están en la nueva lista
+        for alumno in current_alumnos:
+            if alumno not in alumnos_data:
+                alumno.grupo = None
+                alumno.grado = ""
+                # Mantener la carrera como está, o establecerla como None si es necesario
+                # alumno.carrera = None
+                alumno.save()
+
+        # Asignar valores actualizados a los alumnos en la nueva lista
         for alumno in alumnos_data:
             alumno.grupo = instance
             alumno.grado = instance.grado
-
-            # Si no se especifica una carrera explícita, usar la carrera del grupo
-            if not alumno.carrera_id:
-                alumno.carrera_id = instance.carrera_id
-
+            alumno.carrera = instance.carrera  # Asegurar que la carrera esté asignada
             alumno.save()
 
         return instance
