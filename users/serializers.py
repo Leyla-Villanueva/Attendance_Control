@@ -36,7 +36,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             data["apellido_materno"] = alumno.apellido_materno
             data["grado"] = alumno.grado
             data["grupo"] = alumno.grupo.nombre if alumno.grupo else None
-            data["carrera"] = alumno.carrera_id.nombre if alumno.carrera_id else None
+            data["carrera"] = alumno.carrera.nombre if alumno.carrera else None
 
         # Verificar si el usuario es un Maestro
         elif hasattr(self.user, "maestro"):

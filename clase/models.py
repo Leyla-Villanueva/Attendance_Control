@@ -9,7 +9,7 @@ class Clase(models.Model):
     materia_id = models.ForeignKey(Materia, on_delete=models.CASCADE)
     periodo = models.CharField(max_length=50)
     grupo_id = models.ForeignKey(Grupo, on_delete=models.CASCADE)
-    dia_clase = models.CharField(max_length=255, null=True, blank=True)
+    dia_clase = models.CharField(max_length=10000, null=True, blank=True)
 
     def __str__(self):
         return f"{self.materia_id.nombre} - {self.periodo}"
