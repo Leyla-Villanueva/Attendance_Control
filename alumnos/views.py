@@ -102,7 +102,7 @@ class CargaMasivaAlumnosView(APIView):
                     print(f"Error al procesar la fila {row}: {e}")
                     continue
 
-            return Response({"message": "Alumnos cargados exitosamente."}, status=status.HTTP_201_CREATED)
+            return Response({"message": "Alumnos cargados exitosamente."}, status=status.HTTP_200_OK)
         except Exception as e:
             print("Error durante el procesamiento:", str(e)) 
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
