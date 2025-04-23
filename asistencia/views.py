@@ -78,3 +78,36 @@ def calcular_porcentaje_asistencia_general(request):
 
     return Response({"porcentaje_general": resultado})
 
+import openpyxl
+from openpyxl.styles import Font
+from django.http import HttpResponse
+from django.utils.encoding import smart_str
+
+@api_view(["GET"])
+def exportar_asistencia_excel(request):
+    clase_id = request.query_params.get("clase_id")
+    unidad_id = request.query_params.get("unidad_id")
+
+    if not clase_id or not unidad_id:
+        return Response({"error": "Faltan parámetros requeridos"}, status=400)
+
+    asistencias = Asistencia.objects.filter(clase_id=clase_id, unidad_id=unidad_id).select_related("alumno")
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Asistencia"
+
+    headers = ["Alumno", "Fecha", "Asistencia"]
+    ws.append(headers)
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+
+    for asistencia in asistencias:
+        alumno = f"{asistencia.alumno.nombre} {asistencia.alumno.apellido_paterno} {asistencia.alumno.apellido_materno}"
+        estado = "✔" if asistencia.estado else "✖"
+        ws.append([alumno, asistencia.fecha.strftime("%Y-%m-%d"), estado])
+
+    response = HttpResponse(content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response["Content-Disposition"] = f'attachment; filename={smart_str("asistencia_unidad.xlsx")}'
+    wb.save(response)
+    return response
